@@ -1,0 +1,1 @@
+This project is related to Spring Security using JWT tokent and BasicAuthontgication.
