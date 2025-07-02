@@ -1,6 +1,9 @@
 package org.tp.SpringSecurity1Application.Services.impl;
 
 import org.modelmapper.ModelMapper;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.tp.SpringSecurity1Application.Dto.LoginDto;
@@ -20,6 +23,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final JwtUnit jwtUnit;
+    private final AuthenticationManager authenticationManager;
     private final ModelMapper modelMapper;
 
     @Override
@@ -35,24 +39,31 @@ public class UserServiceImpl implements UserService {
     @Override
     public String loginUser(LoginDto loginDto) {
         log.debug("Attempting login for user: {}", loginDto.getEmailId());
-        try {
-            User dbUser = userRepository.findByEmailId(loginDto.getEmailId());
-            if (dbUser == null) {
-                log.warn("Login failed: Email not found - {}", loginDto.getEmailId());
-                return "Login failed. Email not found.";
-            }
-            
-            if (bCryptPasswordEncoder.matches(loginDto.getPassword(), dbUser.getPassword())) {
-                String token = jwtUnit.generateToken(dbUser);
-                log.info("Login successful for user: {}", loginDto.getEmailId());
-                return "Bearer " + token;
-            } else {
-                log.warn("Login failed: Invalid password for user - {}", loginDto.getEmailId());
-                return "Login failed. Invalid password.";
-            }
-        } catch (Exception e) {
-            log.error("Login error for user {}: {}", loginDto.getEmailId(), e.getMessage(), e);
-            return "Login failed. Error: " + e.getMessage();
+//        try {
+//            User dbUser = userRepository.findByEmailId(loginDto.getEmailId());
+//            if (dbUser == null) {
+//                log.warn("Login failed: Email not found - {}", loginDto.getEmailId());
+//                return "Login failed. Email not found.";
+//            }
+//
+//            if (bCryptPasswordEncoder.matches(loginDto.getPassword(), dbUser.getPassword())) {
+//                String token = jwtUnit.generateToken(dbUser);
+//                log.info("Login successful for user: {}", loginDto.getEmailId());
+//                return "Bearer " + token;
+//            } else {
+//                log.warn("Login failed: Invalid password for user - {}", loginDto.getEmailId());
+//                return "Login failed. Invalid password.";
+//            }
+//        } catch (Exception e) {
+//            log.error("Login error for user {}: {}", loginDto.getEmailId(), e.getMessage(), e);
+//            return "Login failed. Error: " + e.getMessage();
+//        }
+        User dbUser = userRepository.findByEmailId(loginDto.getEmailId());
+        Authentication authentication=authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginDto.getEmailId(),loginDto.getPassword()));
+        if(authentication.isAuthenticated()){
+            return jwtUnit.generateToken(dbUser);
+        }else{
+            return "Token is not posible to generate";
         }
     }
 }

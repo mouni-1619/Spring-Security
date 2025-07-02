@@ -62,6 +62,11 @@ public class ProductController {
     @GetMapping("/csrf")
     public Object getCsrfToken(HttpServletRequest request) {
         log.debug("Retrieving CSRF token");
+        String header = request.getHeader("Authorization");
+        if (header != null && header.startsWith("Bearer ")) {
+            String token = header.substring(7);
+            log.debug("JWT Token received: {}", token);
+        }
         return request.getAttribute("_csrf");
     }
 }

@@ -51,6 +51,16 @@ public class UserController {
     @GetMapping
     public Object getUrl(HttpServletRequest request) {
         log.debug("Retrieving CSRF token");
-        return request.getAttribute("_csrf");
+        String header = request.getHeader("Authorization");
+        if (header != null && header.startsWith("Bearer ")) {
+            String token = header.substring(7);
+            if (token.chars().filter(ch -> ch == '.').count() == 2) {
+                return request.getAttribute("_csrf");
+            } else {
+                log.warn("Invalid JWT format received: {}", token);
+                return null;
+            }
+        }
+        return null;
     }
 }
